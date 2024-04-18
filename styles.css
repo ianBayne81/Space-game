@@ -1,0 +1,62 @@
+* {
+    padding: 0;
+    margin: 0;
+}
+
+#page {
+    display: block;
+    margin: auto;
+    height: auto;
+    width: 400px;
+}
+
+#canvasEl {
+    text-align: center;
+}
+
+#canvas {
+    background-image: url("images/spacebg.jpg");
+    background-size: cover;
+    border: 10px solid gray;
+}
+
+#keypadEl {
+    margin-top: 15px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    
+}
+
+#topKeypad {
+    display: flex;
+    justify-content: center;
+}
+
+#middleKeypad {
+    display: flex;
+    justify-content: space-evenly;
+}
+
+#bottomKeypad {
+    display: flex;
+    justify-content: center;
+}
+
+#startButton {
+    display: flex;
+    justify-content: center;
+}
+
+.buttons {
+    margin: 10px;
+    height: 30px;
+    width: 100px;
+}
+
+#fire {
+    height: 50px;
+    width: 50px;
+    border-radius: 25px;
+    color: red;
+}
