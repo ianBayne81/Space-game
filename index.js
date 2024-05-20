@@ -1,219 +1,383 @@
 
+const canvas = document.getElementById("canvas")
+const ctx = canvas.getContext("2d")
+canvas.width = 300
+canvas.height = 400
+let player
+let bulletController 
+let enemy
+let monster
+let bullet
+let aliens
+let alienBullet
 
-let start
-
-class Canvas {
+class Aliens {
     constructor() {
-        this.canvas = document.getElementById("canvas")
-        this.ctx = this.canvas.getContext("2d")
-        this.width = 350
-        this.height = 450
-    } 
+        this.x = canvas.width
+        this.y = Math.floor(Math.random() * (1000 - 750))
+        this.height = 50
+        this.width = 50
+        this.speed = 1
+        this.bulletX = this.x 
+        this.bulletY = this.y 
+        this.bulletRadius = 5
+        this.bulletSpeed = 1
+    }
+    draw() {
+        let aliens = new Image(this.width, this.height)
+        aliens.src = 'images/alien.png'
+        ctx.shadowColor = "none"
+        ctx.shadowBlur = 0
+        ctx.drawImage(aliens, this.x, this.y, this.width, this.height)
+        this.x -= this.speed
+    }
 }
 
-class Newgame extends Canvas {
+class Alienbullet {
     constructor() {
-        super()
-        this.score = 0
-        this.bullets = 100
-        this.obstacleX = Math.floor(Math.random() * (1000 - 655))
-        this.obstacleY = 0
-        this.obstacleWidth = 25
-        this.obstacleHeight = 50
-        this.obstacleDirection = 4
-        this.playerWidth = 30
-        this.playerHeight = -50
-        this.x = (this.width - this.playerWidth) / 2
-        this.y = this.height - 20
-        this.dx = 20
-        this.dy = -20
-        this.enemyX = this.width / 2
-        this.enemyY = 0
-        this.enemyRadius = 75
-        this.enemyHits = 0
+        this.bulletX = aliens.x + 25
+        this.bulletY = aliens.y + aliens.height
         this.bulletRadius = 5
-        this.bulletX = this.x + this.playerWidth / 2
-        this.bulletY = this.y + this.playerHeight
-        this.bulletDirection = 4
-        this.padding = 15
-    }
+        this.bulletSpeed = 1
 
-    drawScore() {
-        this.ctx.font = "18px Arial"
-        this.ctx.fillStyle = "white"
-        this.ctx.fillText(`Score: ${this.score}`, 8, 20)
     }
+    drop() {
+        ctx.shadowColor = "lime"
+        ctx.shadowBlur = 30
+        ctx.beginPath()
+        ctx.arc(this.bulletX, this.bulletY, this.bulletRadius, 0, Math.PI * 2)
+        ctx.fillStyle = "lime"
+        ctx.fill()
+        ctx.closePath()
 
-    drawAmmunition() {
-        this.ctx.font = "18px Arial"
-        this.ctx.fillStyle = "white"
-        this.ctx.fillText(`Ammo: ${this.bullets}`, this.canvas.width - 100, 20)
-    }
-    
-    drawObstacle() {
-        this.ctx.beginPath()
-        this.ctx.rect(this.obstacleX, this.obstacleY, this.obstacleWidth, this.obstacleHeight)
-        this.ctx.fillStyle = "lime"
-        this.ctx.fill()
+        this.bulletY += this.bulletSpeed
 
-        if (this.obstacleY > this.height) {
-            this.obstacleY = 0
-            this.obstacleX = Math.floor(Math.random() * (1000 - 655))
-            this.drawObstacle()
-            
+        if (this.bulletX + this.bulletRadius > player.x &&
+            this.bulletX < player.x + player.width &&
+            this.bulletY + this.bulletRadius > player.y + 10 &&
+            this.bulletY + this.bulletRadius < player.y + 20) {
+                this.bulletX = canvas.width / 2
+                this.bulletY = canvas.height + 50
+                alert(`Game over, your score was ${player.score}`)
+                location.reload()
         }
-
-        this.obstacleY += this.obstacleDirection
-    }
-
-    drawPlayer() {
-        this.ctx.beginPath()
-        this.ctx.rect(this.x, this.y, this.playerWidth, this.playerHeight);
-        this.ctx.fillStyle = "gray"
-        this.ctx.strokeStyle = "white"
-        this.ctx.lineWidth = 5
-        this.ctx.stroke()
-        this.ctx.fill()
-    }
-
-    drawEnemy() {
-        this.ctx.beginPath()
-        this.ctx.arc(this.enemyX, this.enemyY, this.enemyRadius, 0, Math.PI)
-        this.ctx.fillStyle = "lime"
-        this.ctx.fill()
-        this.ctx.closePath()
-    }
-    
-    drawBullet() {
-        this.ctx.beginPath()
-        this.ctx.arc(this.bulletX, this.bulletY - 2, this.bulletRadius, 0, Math.PI * 2)
-        this.ctx.fillStyle = "yellow"
-        this.ctx.fill()
-        this.ctx.closePath()
         
-        if (this.bulletY === 0) {
-            this.bulletX = this.x + this.playerWidth / 2
-            this.bulletY = this.y + this.playerHeight
-        }
-
-        this.bulletY -= this.bulletDirection
     }
+}
 
-    playerBeingHit() {
-        if (this.obstacleY + this.obstacleHeight + this.obstacleDirection >= this.y + this.playerHeight &&
-            this.obstacleX + this.obstacleWidth >= this.x &&
-            this.obstacleX <= this.x + this.playerWidth) {
-                this.obstacleDirection = 0
-                alert("Game over, you've been hit!")
+class Monster {
+    constructor() {
+        this.x = canvas.width / 2 - 50
+        this.y = 5
+        this.height = 75
+        this.width = 100
+        this.speed = 1
+        this.zoneOne = this.y
+        this.zoneTwo = this.y + 25
+        this.hits = 100
+
+    }
+    draw() {
+        let monster = new Image(this.width, this.height)
+        monster.src = 'images/monster.png'
+        ctx.shadowColor = "none"
+        ctx.shadowBlur = 0
+        ctx.font = "12.5px Arial"
+        ctx.strokeStyle = "lime"
+        ctx.strokeText(`${this.hits}`,this.x + 43, this.y + 5)
+        ctx.drawImage(monster, this.x, this.y, this.width, this.height)
+
+        this.x += this.speed
+
+        if (this.x + this.width === canvas.width) {
+            this.speed = -this.speed
+        } else if (this.x === 0) {
+            this.speed = -this.speed
+        }
+        
+    }
+}
+
+class Bullet {
+    constructor() {
+        this.x = player.x + (player.width / 2) - 2.5
+        this.y = player.y
+        this.speed = 4
+        this.width = 5
+        this.height = 15
+        this.color = "red"
+    }
+    draw() {
+        ctx.shadowColor = "orange"
+        ctx.shadowBlur = 30
+        ctx.fillStyle = this.color
+        ctx.fillRect(this.x, this.y, this.width, this.height)
+        this.y -= this.speed
+    }
+    collideWithEnemy() {
+        if (this.x < enemy.x + enemy.width &&
+            this.x + this.width > enemy.x &&
+            this.y < enemy.y + enemy.height + enemy.direction &&
+            this.y > enemy.shield) {
+                player.score += 5
+                this.y = -50
+                this.speed = 0
+                enemy = new Enemy()
+                enemy.draw()
+        }
+    }
+    collideWithMonster() {
+        if (this.x < monster.x + monster.width &&
+            this.x + this.width > monster.x &&
+            this.y < monster.zoneTwo &&
+            this.y > monster.zoneOne) {
+                player.score++
+                monster.hits--
+                this.y = -50
+                this.speed = 0
+                if (monster.hits === 0) {
+                    alert(`You beat the monster! Your score was ${player.score}`)
+                    location.reload()
+                }
+        }
+        
+    }
+    
+    collideWithAliens() {
+        if (this.x < aliens.x + aliens.width &&
+            this.x + this.width > aliens.x &&
+            this.y < aliens.y + (aliens.height / 2) &&
+            this.y > aliens.y) {
+                player.score += 5
+                this.y = -50
+                this.speed = 0
+                aliens = new Aliens()
+                aliens.draw()
+        }
+    }
+    collideWithAlienBullet() {
+        if (this.x < alienBullet.bulletX + alienBullet.bulletRadius &&
+            this.x + this.width > alienBullet.bulletX &&
+            this.y < alienBullet.bulletY + alienBullet.bulletRadius &&
+            this.y > alienBullet.bulletY) {
+                player.score += 1
+                this.y = -50
+                this.speed = 0
+                alienBullet.bulletY = canvas.height + 50
+                
+        }
+    }
+}
+
+class BulletController {
+    bullets = []
+    constructor() {
+    }
+    shoot() {
+        this.bullets.push(new Bullet())
+    }
+    draw() {
+        this.bullets.forEach(function (bullet) {
+            bullet.draw()
+            bullet.collideWithEnemy()
+            bullet.collideWithMonster()
+            bullet.collideWithAliens()
+            bullet.collideWithAlienBullet()
+        })
+    }
+}
+
+class Player {
+    constructor(x, y, bulletController) {
+        this.x = x
+        this.y = y
+        this.bulletController = bulletController
+        this.width = 75
+        this.height = 50
+        this.speed = 15
+        this.score = 0
+        this.ammo = 50
+        this.refillX = Math.floor(Math.random() * (1000 - 715))
+        this.refillY = -15
+        this.refillRadius = 15
+        this.refillDirection = 1
+    }
+    draw() {
+        ctx.shadowColor = 'none'
+        ctx.shadowBlur = 0
+        let jet = new Image(this.width, this.height)
+        jet.src = 'images/jet.png'
+        ctx.drawImage(jet, this.x, this.y, this.width, this.height)
+    }
+    shoot() {
+        bulletController.shoot()
+    }
+    drawScore() {
+        ctx.font = "18px Arial"
+        ctx.fillStyle = "white"
+        ctx.fillText(`Score: ${this.score}`, 8, 20)
+    }
+    drawAmmo() {
+        ctx.font = "18px Arial"
+        ctx.fillStyle = "white"
+        ctx.fillText(`Ammo: ${this.ammo}`, canvas.width - 100, 20)
+    }
+    drawResupply() {
+        ctx.shadowColor = "lime"
+        ctx.shadowBlur = 20
+        ctx.beginPath()
+        ctx.arc(this.refillX, this.refillY, this.refillRadius, 0, Math.PI * 2)
+        ctx.lineWidth = 1
+        ctx.strokeStyle = "lime"
+        ctx.stroke() 
+        ctx.fillStyle = "black"
+        ctx.fill()
+        ctx.font = "15px Arial";
+        ctx.strokeText("50",this.refillX - 8, this.refillY + 5)
+        ctx.closePath()
+        this.refillY += this.refillDirection
+    }
+    
+} 
+
+class Enemy {
+    constructor() { 
+        this.x = monster.x + 50   
+        this.y = monster.y + 35
+        this.width = 15
+        this.height = 45
+        this.shield = (this.y + this.height) - 5
+        this.direction = 1
+    }
+    draw() {
+        ctx.shadowColor = "lime"
+        ctx.shadowBlur = 30
+        let bomb = new Image(this.width, this.height)
+        bomb.src = 'images/enemy.png'
+        ctx.drawImage(bomb, this.x, this.y, this.width, this.height)
+
+        this.y += this.direction
+        
+        if (this.x + this.width > player.x &&
+            this.x < player.x + player.width &&
+            this.y + this.height > player.y + 20 &&
+            this.y + this.height < player.y + 21) {
+                alert(`Game over, your score was ${player.score}`)
                 location.reload()
         }
     }
-    
-    enemyBeingHit() {
-        if (this.bulletX  > this.enemyX - this.enemyRadius &&
-            this.bulletX < this.enemyX + this.enemyRadius &&
-            this.bulletY <= this.enemyY + this.enemyRadius) {
-
-            this.score += 1
-            this.enemyHits++
-            this.bulletX = this.x + this.playerWidth / 2
-            this.bulletY = this.y + this.playerHeight
-        }
-    }
-
-    bulletCollision() {
-        if (this.bulletY - this.bulletRadius < this.obstacleY + this.obstacleHeight &&
-            this.bulletX >= this.obstacleX &&
-            this.bulletX <= this.obstacleX + this.obstacleWidth) {
-                this.score++
-                this.obstacleY = 0
-                this.obstacleX = Math.floor(Math.random() * (1000 - 655))
-                this.bulletX = this.x + this.playerWidth / 2
-                this.bulletY = this.y + this.playerHeight
-        }
-    }
-    
-    render() {
-        this.ctx.clearRect(0, 0, this.width, this.height)
-        this.drawScore()
-        this.drawAmmunition()
-        this.drawObstacle()
-        this.drawPlayer()
-        this.drawEnemy()
-        this.playerBeingHit()
-        this.enemyBeingHit()
-        this.bulletCollision()
-        this.drawBullet()
-        
-        requestAnimationFrame(() => this.render())
-    }
 }
 
-//eventlisteners for the buttons
-document.querySelector("#start").addEventListener("click", function (e) {
+function gameLoop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    bulletController.draw()
+    enemy.draw()
+    aliens.draw()
+    alienBullet.drop()
+    monster.draw()
+    player.draw()
+    player.drawScore()
+    player.drawAmmo()
+    
+    if (enemy.y - enemy.height > canvas.height) {
+        enemy = new Enemy()
+        enemy.draw()
+    }
+
+    if (aliens.x < player.x + 15 &&
+        aliens.x > player.x + 10 &&
+        alienBullet.bulletY > canvas.height) {
+        console.log("now")
+        alienBullet.bulletX = aliens.x + 25
+        alienBullet.bulletY = aliens.y + aliens.height
+        alienBullet.drop()
+    }
+
+    if (aliens.x + aliens.width <= 0) {
+        aliens = new Aliens()
+        aliens.draw()
+    }
+
+    if (player.ammo === 0) {
+        player.drawResupply()
+    }
+
+    if (player.refillY + player.refillRadius > player.y &&
+        player.refillY + player.refillRadius < player.y + 2 &&
+        player.refillX - player.refillRadius < player.x + player.width &&
+        player.refillX + player.refillRadius > player.x) {
+        player.ammo = 50
+        player.refillY = canvas.height + 50
+    } 
+    
+    if (player.refillY > canvas.height) {
+        player.refillX = Math.floor(Math.random() * (1000 - 715))
+        player.refillY = -15
+        player.drawResupply()
+    }
+
+    requestAnimationFrame(() => gameLoop())
+    
+}
+
+document.querySelector('#left').addEventListener('click', function(e) {
     e.preventDefault()
-    start = new Newgame
-    start.render()
+    if (player.x <= 0) {
+        return
+    } else {
+        player.x -= player.speed
+    }
+})
+
+document.querySelector('#right').addEventListener('click', function(e) {
+    e.preventDefault()
+    if (player.x + player.width >= canvas.width) {
+        return
+    } else {
+        player.x += player.speed
+    }
 })
 
 document.querySelector("#forward").addEventListener("click", function (e) {
     e.preventDefault()
-    if ((start.y + start.dy) + start.playerHeight < 0) {
+    if (player.y <= monster.y + monster.height) {
         return
     } else {
-        start.y += start.dy
+        player.y -= player.speed
     }
 })
 
 document.querySelector("#backward").addEventListener("click", function (e) {
     e.preventDefault()
-    if ((start.y + start.dy) - start.playerHeight > start.height) {
+    if (player.y + player.height >= canvas.height) {
         return
     } else {
-        start.y -= start.dy
+        player.y += player.speed
     }
     
 })
 
-document.querySelector("#left").addEventListener("click", function (e) {
+document.querySelector('#fire').addEventListener('click', function(e) {
     e.preventDefault()
-    if ((start.x + start.dx) - start.playerWidth <= 0) {
-        return
+    
+    if (player.ammo > 0) {
+        player.shoot()
+        player.ammo--
     } else {
-        start.x -= start.dx
-    }
-    
-})
-
-document.querySelector("#right").addEventListener("click", function (e) {
-    e.preventDefault()
-    if ((start.x + start.dx) + start.playerWidth > start.width) {
         return
     }
-    start.x += start.dx
+    
 })
 
-document.querySelector("#fire").addEventListener("click", function (e) {
+
+document.querySelector('#start').addEventListener('click', function(e) {
     e.preventDefault()
-    if (start.bullets > 0) {
-        start.bulletX = start.x + start.playerWidth / 2
-        start.bulletY = start.y + start.playerHeight
-        start.drawBullet()
-        start.bullets--
-    } else {
-        alert("You have no bullets left")
-    }
+    monster = new Monster()
+    aliens = new Aliens()
+    alienBullet = new Alienbullet()
+    enemy = new Enemy()
+    player = new Player(canvas.width / 2 - 37.5, canvas.height / 1.2)
+    bulletController = new BulletController()
+    gameLoop()
     
 })
-
-
-
-
-
-
-  
-
-
-    
-    
-    
