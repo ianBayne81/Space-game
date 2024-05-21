@@ -73,7 +73,7 @@ body {
 
 .buttons:hover {
     transform: scale(1.1);
-    border: 2px solid yellow;
+    border: 2px solid white;
 }
 
 #fire {

@@ -10,6 +10,8 @@ let monster
 let bullet
 let aliens
 let alienBullet
+let toggle = document.querySelector('#start')
+toggle.disabled = false
 
 class Aliens {
     constructor() {
@@ -43,7 +45,7 @@ class Alienbullet {
     }
     drop() {
         ctx.shadowColor = "lime"
-        ctx.shadowBlur = 30
+        ctx.shadowBlur = 20
         ctx.beginPath()
         ctx.arc(this.bulletX, this.bulletY, this.bulletRadius, 0, Math.PI * 2)
         ctx.fillStyle = "lime"
@@ -58,8 +60,11 @@ class Alienbullet {
             this.bulletY + this.bulletRadius < player.y + 20) {
                 this.bulletX = canvas.width / 2
                 this.bulletY = canvas.height + 50
-                alert(`Game over, your score was ${player.score}`)
-                location.reload()
+
+                player.gameActive = false
+                setTimeout(() => {
+                    location.reload()
+                }, 3000)
         }
         
     }
@@ -136,13 +141,13 @@ class Bullet {
                 this.y = -50
                 this.speed = 0
                 if (monster.hits === 0) {
-                    alert(`You beat the monster! Your score was ${player.score}`)
-                    location.reload()
+                    player.gameActive = false
+                    setTimeout(() => {
+                        location.reload()
+                    }, 4000)
                 }
-        }
-        
+            }
     }
-    
     collideWithAliens() {
         if (this.x < aliens.x + aliens.width &&
             this.x + this.width > aliens.x &&
@@ -164,7 +169,6 @@ class Bullet {
                 this.y = -50
                 this.speed = 0
                 alienBullet.bulletY = canvas.height + 50
-                
         }
     }
 }
@@ -201,6 +205,7 @@ class Player {
         this.refillY = -15
         this.refillRadius = 15
         this.refillDirection = 1
+        this.gameActive = true
     }
     draw() {
         ctx.shadowColor = 'none'
@@ -237,6 +242,26 @@ class Player {
         ctx.closePath()
         this.refillY += this.refillDirection
     }
+    gameOver() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        ctx.shadowColor = "lime"
+        ctx.shadowBlur = 20
+        ctx.font = "18px Arial"
+        ctx.fillStyle = "lime"
+        ctx.fillText(`Game over!`, 100, 110)
+        ctx.fillText(`You were hit`, 95, 180)
+        ctx.fillText(`Your score is ${player.score}`, 85, 250)
+    }
+    wins() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        ctx.shadowColor = "lime"
+        ctx.shadowBlur = 20
+        ctx.font = "18px Arial"
+        ctx.fillStyle = "lime"
+        ctx.fillText(`Game over!`, 100, 110)
+        ctx.fillText(`You won`, 110, 180)
+        ctx.fillText(`Your score is ${player.score}`, 85, 250)
+    }
     
 } 
 
@@ -262,22 +287,34 @@ class Enemy {
             this.x < player.x + player.width &&
             this.y + this.height > player.y + 20 &&
             this.y + this.height < player.y + 21) {
-                alert(`Game over, your score was ${player.score}`)
+                
+            player.gameActive = false
+            setTimeout(() => {
                 location.reload()
+            }, 4000)
         }
     }
 }
 
 function gameLoop() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-    bulletController.draw()
-    enemy.draw()
-    aliens.draw()
-    alienBullet.drop()
-    monster.draw()
-    player.draw()
-    player.drawScore()
-    player.drawAmmo()
+    if (player.gameActive === false) {
+        if (monster.hits === 0) {
+            player.wins()
+        } else {
+            player.gameOver()
+        }
+        
+    } else {
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        bulletController.draw()
+        enemy.draw()
+        aliens.draw()
+        alienBullet.drop()
+        monster.draw()
+        player.draw()
+        player.drawScore()
+        player.drawAmmo()
+    }
     
     if (enemy.y - enemy.height > canvas.height) {
         enemy = new Enemy()
@@ -287,7 +324,7 @@ function gameLoop() {
     if (aliens.x < player.x + 15 &&
         aliens.x > player.x + 10 &&
         alienBullet.bulletY > canvas.height) {
-        console.log("now")
+        
         alienBullet.bulletX = aliens.x + 25
         alienBullet.bulletY = aliens.y + aliens.height
         alienBullet.drop()
@@ -320,57 +357,59 @@ function gameLoop() {
     
 }
 
-document.querySelector('#left').addEventListener('click', function(e) {
-    e.preventDefault()
-    if (player.x <= 0) {
-        return
-    } else {
-        player.x -= player.speed
-    }
-})
+function renderButtonEvents() {
 
-document.querySelector('#right').addEventListener('click', function(e) {
-    e.preventDefault()
-    if (player.x + player.width >= canvas.width) {
-        return
-    } else {
-        player.x += player.speed
-    }
-})
-
-document.querySelector("#forward").addEventListener("click", function (e) {
-    e.preventDefault()
-    if (player.y <= monster.y + monster.height) {
-        return
-    } else {
-        player.y -= player.speed
-    }
-})
-
-document.querySelector("#backward").addEventListener("click", function (e) {
-    e.preventDefault()
-    if (player.y + player.height >= canvas.height) {
-        return
-    } else {
-        player.y += player.speed
-    }
+    document.querySelector('#left').addEventListener('click', function(e) {
+        e.preventDefault()
+        if (player.x <= 0) {
+            return
+        } else {
+            player.x -= player.speed
+        }
+    })
     
-})
-
-document.querySelector('#fire').addEventListener('click', function(e) {
-    e.preventDefault()
+    document.querySelector('#right').addEventListener('click', function(e) {
+        e.preventDefault()
+        if (player.x + player.width >= canvas.width) {
+            return
+        } else {
+            player.x += player.speed
+        }
+    })
     
-    if (player.ammo > 0) {
-        player.shoot()
-        player.ammo--
-    } else {
-        return
-    }
+    document.querySelector("#forward").addEventListener("click", function (e) {
+        e.preventDefault()
+        if (player.y <= monster.y + monster.height) {
+            return
+        } else {
+            player.y -= player.speed
+        }
+    })
     
-})
+    document.querySelector("#backward").addEventListener("click", function (e) {
+        e.preventDefault()
+        if (player.y + player.height >= canvas.height) {
+            return
+        } else {
+            player.y += player.speed
+        }
+        
+    })
+    
+    document.querySelector('#fire').addEventListener('click', function(e) {
+        e.preventDefault()
+        
+        if (player.ammo > 0) {
+            player.shoot()
+            player.ammo--
+        } else {
+            return
+        }
+        
+    })
+}
 
-
-document.querySelector('#start').addEventListener('click', function(e) {
+toggle.addEventListener('click', function(e) {
     e.preventDefault()
     monster = new Monster()
     aliens = new Aliens()
@@ -378,6 +417,7 @@ document.querySelector('#start').addEventListener('click', function(e) {
     enemy = new Enemy()
     player = new Player(canvas.width / 2 - 37.5, canvas.height / 1.2)
     bulletController = new BulletController()
+    renderButtonEvents()
     gameLoop()
-    
+    toggle.disabled = true
 })
