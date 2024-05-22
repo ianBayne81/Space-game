@@ -3,17 +3,12 @@
     margin: 0;
 }
 
-body {
-    background: linear-gradient(0deg, rgb(104, 104, 243), rgb(101, 20, 101) 50%);
-    height: 100vh;
-    width: 100vw;
-}
-
 #page {
+    background: linear-gradient(0deg, rgb(104, 104, 243), rgb(101, 20, 101) 50%);
     display: block;
     margin: auto;
     height: 100%;
-    width: 100%;
+    width: 100vw;
 }
 
 #heading {
@@ -86,4 +81,10 @@ body {
 #fire:hover {
     transform: scale(1.1);
     border: 2px solid red;
+}
+@media screen and (min-width: 0px) and (max-width: 400px) {
+    #page {
+        height: 100vh;
+        width: 100vw;
+    }
 }
